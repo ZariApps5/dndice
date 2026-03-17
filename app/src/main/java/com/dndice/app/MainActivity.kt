@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -62,7 +63,7 @@ data class HistoryEntry(val expression: String, val total: Int, val time: String
 
 enum class AdvantageMode { ADV, DIS }
 
-// ── Constants ────────────────────────────────────────────
+// ── Dice config ──────────────────────────────────────────
 
 val DICE = listOf(
     Die(4,   "d4",  Color(0xFFE74C3C)),
@@ -74,15 +75,51 @@ val DICE = listOf(
     Die(100, "d%",  Color(0xFFE91E63)),
 )
 
-val BgColor      = Color(0xFF0E0E14)
-val SurfaceColor = Color(0xFF1A1A26)
-val RaisedColor  = Color(0xFF22223A)
-val BorderColor  = Color(0xFF2E2E4A)
-val DimBorder    = Color(0xFF3E3E5A)
-val AccentColor  = Color(0xFFC8A84B)
-val MutedColor   = Color(0xFF8A8AAA)
-val RedColor     = Color(0xFFE74C3C)
-val GreenColor   = Color(0xFF2ECC71)
+// ── Theme colors ─────────────────────────────────────────
+
+data class AppColors(
+    val bg: Color,
+    val surface: Color,
+    val raised: Color,
+    val border: Color,
+    val dimBorder: Color,
+    val accent: Color,
+    val muted: Color,
+    val text: Color,
+    val red: Color,
+    val green: Color,
+    val isDark: Boolean,
+)
+
+val darkColors = AppColors(
+    bg        = Color(0xFF0E0E14),
+    surface   = Color(0xFF1A1A26),
+    raised    = Color(0xFF22223A),
+    border    = Color(0xFF2E2E4A),
+    dimBorder = Color(0xFF3E3E5A),
+    accent    = Color(0xFFC8A84B),
+    muted     = Color(0xFF8A8AAA),
+    text      = Color(0xFFE8E4D9),
+    red       = Color(0xFFE74C3C),
+    green     = Color(0xFF2ECC71),
+    isDark    = true,
+)
+
+val lightColors = AppColors(
+    bg        = Color(0xFFF5F0E8),
+    surface   = Color(0xFFEBE5D6),
+    raised    = Color(0xFFE2DBCA),
+    border    = Color(0xFFC5B89A),
+    dimBorder = Color(0xFFA89E88),
+    accent    = Color(0xFF7A5C10),
+    muted     = Color(0xFF6B6050),
+    text      = Color(0xFF2A1F0A),
+    red       = Color(0xFFCC3322),
+    green     = Color(0xFF1A7A3A),
+    isDark    = false,
+)
+
+val LocalColors = compositionLocalOf { darkColors }
 
 // ── Activity ─────────────────────────────────────────────
 
@@ -91,7 +128,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DnDiceTheme { DiceRollerScreen() }
+            var isDark by remember { mutableStateOf(true) }
+            DnDiceTheme(isDark = isDark) {
+                DiceRollerScreen(
+                    isDark = isDark,
+                    onToggleTheme = { isDark = !isDark },
+                )
+            }
         }
     }
 }
@@ -99,24 +142,40 @@ class MainActivity : ComponentActivity() {
 // ── Theme ────────────────────────────────────────────────
 
 @Composable
-fun DnDiceTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = darkColorScheme(
-            background = BgColor,
-            surface = SurfaceColor,
-            primary = AccentColor,
-            onPrimary = Color(0xFF111111),
-            onBackground = Color(0xFFE8E4D9),
-            onSurface = Color(0xFFE8E4D9),
-        ),
-        content = content,
-    )
+fun DnDiceTheme(isDark: Boolean, content: @Composable () -> Unit) {
+    val c = if (isDark) darkColors else lightColors
+    CompositionLocalProvider(LocalColors provides c) {
+        MaterialTheme(
+            colorScheme = if (isDark) {
+                darkColorScheme(
+                    background = c.bg,
+                    surface    = c.surface,
+                    primary    = c.accent,
+                    onPrimary  = Color(0xFF111111),
+                    onBackground = c.text,
+                    onSurface  = c.text,
+                )
+            } else {
+                lightColorScheme(
+                    background = c.bg,
+                    surface    = c.surface,
+                    primary    = c.accent,
+                    onPrimary  = Color(0xFFFFFFFF),
+                    onBackground = c.text,
+                    onSurface  = c.text,
+                )
+            },
+            content = content,
+        )
+    }
 }
 
 // ── Main screen ──────────────────────────────────────────
 
 @Composable
-fun DiceRollerScreen() {
+fun DiceRollerScreen(isDark: Boolean, onToggleTheme: () -> Unit) {
+    val c = LocalColors.current
+
     var counts       by remember { mutableStateOf(DICE.associate { it.sides to 0 }) }
     var modifierText by remember { mutableStateOf("0") }
     var advMode      by remember { mutableStateOf<AdvantageMode?>(null) }
@@ -131,6 +190,9 @@ fun DiceRollerScreen() {
     val scope  = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val hasDice = counts.values.any { it > 0 }
+
+    // Animate bg color on theme switch
+    val animBg by animateColorAsState(c.bg, tween(300), label = "bg")
 
     fun addDie(sides: Int) {
         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -214,7 +276,7 @@ fun DiceRollerScreen() {
     }
 
     Scaffold(
-        containerColor = BgColor,
+        containerColor = animBg,
         contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
             RollButtonBar(
@@ -234,13 +296,13 @@ fun DiceRollerScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            AppHeader()
+            AppHeader(isDark = isDark, onToggleTheme = onToggleTheme)
 
             DiceGrid(counts = counts, onAdd = ::addDie, onRemove = ::removeDie)
 
             Text(
                 text = "Tap to add  ·  Hold to remove",
-                color = DimBorder,
+                color = c.dimBorder,
                 fontSize = 11.sp,
                 letterSpacing = 1.sp,
             )
@@ -274,24 +336,51 @@ fun DiceRollerScreen() {
 // ── Header ───────────────────────────────────────────────
 
 @Composable
-fun AppHeader() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+fun AppHeader(isDark: Boolean, onToggleTheme: () -> Unit) {
+    val c = LocalColors.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = "DnDice",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Black,
-            color = AccentColor,
-            letterSpacing = 5.sp,
-        )
-        Text(
-            text = "ROLL THE BONES",
-            fontSize = 11.sp,
-            color = MutedColor,
-            letterSpacing = 7.sp,
-        )
+        // Spacer to balance the toggle button on the right
+        Spacer(Modifier.size(44.dp))
+
+        Spacer(Modifier.weight(1f))
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "DnDice",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Black,
+                color = c.accent,
+                letterSpacing = 5.sp,
+            )
+            Text(
+                text = "ROLL THE BONES",
+                fontSize = 11.sp,
+                color = c.muted,
+                letterSpacing = 7.sp,
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        // Theme toggle button
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(c.raised)
+                .border(1.dp, c.border, CircleShape)
+                .clickable { onToggleTheme() },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = if (isDark) "☀" else "☾",
+                fontSize = 18.sp,
+                color = c.accent,
+            )
+        }
     }
 }
 
@@ -321,10 +410,7 @@ fun DiceGrid(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                // Pad last row to maintain grid alignment
-                repeat(4 - row.size) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
+                repeat(4 - row.size) { Spacer(modifier = Modifier.weight(1f)) }
             }
         }
     }
@@ -340,16 +426,17 @@ fun DieButton(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val c = LocalColors.current
     val active = count > 0
 
     Box(
         modifier = modifier
             .aspectRatio(1f)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (active) die.color.copy(alpha = 0.10f) else RaisedColor)
+            .background(if (active) die.color.copy(alpha = 0.10f) else c.raised)
             .border(
                 width = if (active) 1.5.dp else 1.dp,
-                color = if (active) die.color else BorderColor,
+                color = if (active) die.color else c.border,
                 shape = RoundedCornerShape(12.dp),
             )
             .pointerInput(Unit) {
@@ -364,12 +451,12 @@ fun DieButton(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            DieShape(sides = die.sides, color = if (active) die.color else DimBorder)
+            DieShape(sides = die.sides, color = if (active) die.color else c.dimBorder)
             Text(
                 text = die.label,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = if (active) die.color else MutedColor,
+                color = if (active) die.color else c.muted,
                 letterSpacing = 1.sp,
             )
         }
@@ -460,30 +547,30 @@ fun ControlsRow(
     onAdvToggle: (AdvantageMode) -> Unit,
     onClear: () -> Unit,
 ) {
+    val c = LocalColors.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Modifier
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(RaisedColor)
-                .border(1.dp, BorderColor, RoundedCornerShape(10.dp))
+                .background(c.raised)
+                .border(1.dp, c.border, RoundedCornerShape(10.dp))
                 .height(44.dp)
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("MOD", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MutedColor, letterSpacing = 2.sp)
+            Text("MOD", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = c.muted, letterSpacing = 2.sp)
             BasicModifierInput(value = modifierText, onValueChange = onModifierChange)
         }
 
-        AdvButton(label = "ADV", active = advMode == AdvantageMode.ADV, activeColor = GreenColor) {
+        AdvButton(label = "ADV", active = advMode == AdvantageMode.ADV, activeColor = c.green) {
             onAdvToggle(AdvantageMode.ADV)
         }
-        AdvButton(label = "DIS", active = advMode == AdvantageMode.DIS, activeColor = RedColor) {
+        AdvButton(label = "DIS", active = advMode == AdvantageMode.DIS, activeColor = c.red) {
             onAdvToggle(AdvantageMode.DIS)
         }
 
@@ -492,20 +579,21 @@ fun ControlsRow(
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(RaisedColor)
-                .border(1.dp, BorderColor, RoundedCornerShape(10.dp))
+                .background(c.raised)
+                .border(1.dp, c.border, RoundedCornerShape(10.dp))
                 .clickable { onClear() }
                 .height(44.dp)
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text("Clear", fontSize = 13.sp, color = MutedColor)
+            Text("Clear", fontSize = 13.sp, color = c.muted)
         }
     }
 }
 
 @Composable
 fun BasicModifierInput(value: String, onValueChange: (String) -> Unit) {
+    val c = LocalColors.current
     TextField(
         value = value,
         onValueChange = { v ->
@@ -515,7 +603,7 @@ fun BasicModifierInput(value: String, onValueChange: (String) -> Unit) {
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         textStyle = TextStyle(
-            color = Color(0xFFE8E4D9),
+            color = c.text,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -526,20 +614,21 @@ fun BasicModifierInput(value: String, onValueChange: (String) -> Unit) {
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            cursorColor = AccentColor,
-            focusedTextColor = Color(0xFFE8E4D9),
-            unfocusedTextColor = Color(0xFFE8E4D9),
+            cursorColor = c.accent,
+            focusedTextColor = c.text,
+            unfocusedTextColor = c.text,
         ),
     )
 }
 
 @Composable
 fun AdvButton(label: String, active: Boolean, activeColor: Color, onClick: () -> Unit) {
+    val c = LocalColors.current
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(if (active) activeColor.copy(alpha = 0.12f) else RaisedColor)
-            .border(1.dp, if (active) activeColor else BorderColor, RoundedCornerShape(10.dp))
+            .background(if (active) activeColor.copy(alpha = 0.12f) else c.raised)
+            .border(1.dp, if (active) activeColor else c.border, RoundedCornerShape(10.dp))
             .clickable { onClick() }
             .height(44.dp)
             .padding(horizontal = 12.dp),
@@ -549,7 +638,7 @@ fun AdvButton(label: String, active: Boolean, activeColor: Color, onClick: () ->
             text = label,
             fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = if (active) activeColor else MutedColor,
+            color = if (active) activeColor else c.muted,
             letterSpacing = 1.sp,
         )
     }
@@ -559,12 +648,13 @@ fun AdvButton(label: String, active: Boolean, activeColor: Color, onClick: () ->
 
 @Composable
 fun ResultPanel(result: RollResult?, alpha: Float, totalScale: Float) {
+    val c = LocalColors.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(SurfaceColor)
-            .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+            .background(c.surface)
+            .border(1.dp, c.border, RoundedCornerShape(16.dp))
             .padding(20.dp)
             .graphicsLayer(alpha = alpha),
         contentAlignment = Alignment.Center,
@@ -572,7 +662,7 @@ fun ResultPanel(result: RollResult?, alpha: Float, totalScale: Float) {
         if (result == null) {
             Text(
                 text = "Select dice and roll",
-                color = MutedColor,
+                color = c.muted,
                 fontSize = 13.sp,
                 letterSpacing = 2.sp,
                 modifier = Modifier.padding(vertical = 20.dp),
@@ -582,24 +672,21 @@ fun ResultPanel(result: RollResult?, alpha: Float, totalScale: Float) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(result.expression, color = MutedColor, fontSize = 12.sp, letterSpacing = 1.sp)
+                Text(result.expression, color = c.muted, fontSize = 12.sp, letterSpacing = 1.sp)
 
-                // Chips — split into rows of 5
                 result.rolls.chunked(5).forEach { rowRolls ->
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.wrapContentWidth(),
                     ) {
-                        rowRolls.forEach { roll ->
-                            DieChip(roll)
-                        }
+                        rowRolls.forEach { roll -> DieChip(roll) }
                     }
                 }
 
                 if (result.modifier != 0) {
                     Text(
                         text = "${result.rawSum} ${if (result.modifier > 0) "+" else "−"} ${abs(result.modifier)} mod",
-                        color = MutedColor,
+                        color = c.muted,
                         fontSize = 12.sp,
                     )
                 }
@@ -608,17 +695,13 @@ fun ResultPanel(result: RollResult?, alpha: Float, totalScale: Float) {
                     text = result.total.toString(),
                     fontSize = 64.sp,
                     fontWeight = FontWeight.Black,
-                    color = if (result.isCrit) Color(0xFFF0D080) else AccentColor,
+                    color = if (result.isCrit) Color(0xFFF0D080) else c.accent,
                     lineHeight = 72.sp,
                     modifier = Modifier.scale(totalScale),
                 )
 
-                if (result.isCrit) {
-                    CritBadge("NATURAL 20  ✦", AccentColor)
-                }
-                if (result.isCritFail) {
-                    CritBadge("CRITICAL FAIL", RedColor)
-                }
+                if (result.isCrit)     CritBadge("NATURAL 20  ✦", c.accent)
+                if (result.isCritFail) CritBadge("CRITICAL FAIL", c.red)
             }
         }
     }
@@ -626,18 +709,19 @@ fun ResultPanel(result: RollResult?, alpha: Float, totalScale: Float) {
 
 @Composable
 fun DieChip(roll: DieRoll) {
+    val c = LocalColors.current
     val isMax = roll.value == roll.sides
     val isMin = roll.value == 1
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(RaisedColor)
+            .background(c.raised)
             .border(
                 width = 1.5.dp,
                 color = when {
                     isMax -> roll.color
-                    isMin -> Color(0xFF444444)
-                    else  -> BorderColor
+                    isMin -> c.border
+                    else  -> c.border
                 },
                 shape = RoundedCornerShape(8.dp),
             )
@@ -648,9 +732,9 @@ fun DieChip(roll: DieRoll) {
             text = roll.value.toString(),
             fontSize = 17.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = if (isMax) roll.color else if (isMin) MutedColor.copy(alpha = 0.5f) else Color(0xFFE8E4D9),
+            color = if (isMax) roll.color else if (isMin) c.muted.copy(alpha = 0.5f) else c.text,
         )
-        Text(text = roll.label, fontSize = 9.sp, color = MutedColor, letterSpacing = 1.sp)
+        Text(text = roll.label, fontSize = 9.sp, color = c.muted, letterSpacing = 1.sp)
     }
 }
 
@@ -671,6 +755,7 @@ fun CritBadge(text: String, color: Color) {
 
 @Composable
 fun RollHistory(history: List<HistoryEntry>) {
+    val c = LocalColors.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -679,7 +764,7 @@ fun RollHistory(history: List<HistoryEntry>) {
             text = "RECENT ROLLS",
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
-            color = MutedColor,
+            color = c.muted,
             letterSpacing = 4.sp,
             modifier = Modifier.padding(start = 2.dp, bottom = 2.dp),
         )
@@ -688,8 +773,8 @@ fun RollHistory(history: List<HistoryEntry>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
-                    .background(SurfaceColor)
-                    .border(1.dp, BorderColor, RoundedCornerShape(10.dp))
+                    .background(c.surface)
+                    .border(1.dp, c.border, RoundedCornerShape(10.dp))
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -697,13 +782,13 @@ fun RollHistory(history: List<HistoryEntry>) {
                 Text(
                     text = entry.expression,
                     modifier = Modifier.weight(1f),
-                    color = MutedColor,
+                    color = c.muted,
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(entry.total.toString(), fontSize = 19.sp, fontWeight = FontWeight.Black, color = AccentColor)
-                Text(entry.time, fontSize = 11.sp, color = BorderColor)
+                Text(entry.total.toString(), fontSize = 19.sp, fontWeight = FontWeight.Black, color = c.accent)
+                Text(entry.time, fontSize = 11.sp, color = c.border)
             }
         }
     }
@@ -713,9 +798,11 @@ fun RollHistory(history: List<HistoryEntry>) {
 
 @Composable
 fun RollButtonBar(enabled: Boolean, scale: Float, onRoll: () -> Unit) {
+    val c = LocalColors.current
+    val animSurface by animateColorAsState(c.bg, tween(300), label = "btnBg")
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = BgColor.copy(alpha = 0.96f),
+        color = animSurface.copy(alpha = 0.96f),
     ) {
         Box(
             modifier = Modifier
@@ -728,7 +815,7 @@ fun RollButtonBar(enabled: Boolean, scale: Float, onRoll: () -> Unit) {
                     brush = if (enabled)
                         Brush.linearGradient(listOf(Color(0xFFA07820), Color(0xFFC8A84B), Color(0xFFD4B860)))
                     else
-                        Brush.linearGradient(listOf(Color(0xFF252535), Color(0xFF252535))),
+                        Brush.linearGradient(listOf(c.raised, c.raised)),
                 )
                 .clickable(enabled = enabled, onClick = onRoll)
                 .padding(vertical = 18.dp),
@@ -738,7 +825,7 @@ fun RollButtonBar(enabled: Boolean, scale: Float, onRoll: () -> Unit) {
                 text = "ROLL",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black,
-                color = if (enabled) Color(0xFF111111) else Color(0xFF555566),
+                color = if (enabled) Color(0xFF111111) else c.muted,
                 letterSpacing = 6.sp,
             )
         }
