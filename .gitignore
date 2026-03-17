@@ -1,0 +1,18 @@
+# Build outputs
+build/
+app/build/
+.gradle/
+
+# Local config (machine-specific SDK path)
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+.DS_Store
+
+# Temp scripts
+build.bat
+
+# Claude memory
+.claude/
