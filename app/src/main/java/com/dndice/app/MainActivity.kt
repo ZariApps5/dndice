@@ -599,12 +599,12 @@ fun BasicModifierInput(value: String, onValueChange: (String) -> Unit) {
         onValueChange = { v ->
             if (v.matches(Regex("^-?\\d{0,3}$")) || v == "-") onValueChange(v)
         },
-        modifier = Modifier.width(60.dp),
+        modifier = Modifier.width(72.dp),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         textStyle = TextStyle(
             color = c.text,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         ),
