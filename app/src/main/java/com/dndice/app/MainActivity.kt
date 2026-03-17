@@ -127,12 +127,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val prefs = getSharedPreferences("dndice_prefs", MODE_PRIVATE)
         setContent {
-            var isDark by remember { mutableStateOf(true) }
+            var isDark by remember { mutableStateOf(prefs.getBoolean("is_dark", false)) }
             DnDiceTheme(isDark = isDark) {
                 DiceRollerScreen(
                     isDark = isDark,
-                    onToggleTheme = { isDark = !isDark },
+                    onToggleTheme = {
+                        isDark = !isDark
+                        prefs.edit().putBoolean("is_dark", isDark).apply()
+                    },
                 )
             }
         }
