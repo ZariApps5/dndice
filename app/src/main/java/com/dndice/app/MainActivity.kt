@@ -558,10 +558,10 @@ fun ControlsRow(
                 .clip(RoundedCornerShape(10.dp))
                 .background(c.raised)
                 .border(1.dp, c.border, RoundedCornerShape(10.dp))
-                .height(44.dp)
-                .padding(horizontal = 10.dp),
+                .height(52.dp)
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text("MOD", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = c.muted, letterSpacing = 2.sp)
             BasicModifierInput(value = modifierText, onValueChange = onModifierChange)
@@ -582,7 +582,7 @@ fun ControlsRow(
                 .background(c.raised)
                 .border(1.dp, c.border, RoundedCornerShape(10.dp))
                 .clickable { onClear() }
-                .height(44.dp)
+                .height(52.dp)
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -630,7 +630,7 @@ fun AdvButton(label: String, active: Boolean, activeColor: Color, onClick: () ->
             .background(if (active) activeColor.copy(alpha = 0.12f) else c.raised)
             .border(1.dp, if (active) activeColor else c.border, RoundedCornerShape(10.dp))
             .clickable { onClick() }
-            .height(44.dp)
+            .height(52.dp)
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
