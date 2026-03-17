@@ -1,0 +1,68 @@
+================================
+DNDICE — PLAY STORE LISTING
+================================
+
+APP TITLE (50 chars max)
+------------------------
+DnDice — RPG Dice Roller
+
+
+SHORT DESCRIPTION (80 chars max)
+---------------------------------
+The cleanest dice roller for D&D and tabletop RPGs. Roll any dice, anywhere.
+
+
+FULL DESCRIPTION (4000 chars max)
+----------------------------------
+DnDice is the most elegant dice roller for Dungeons & Dragons, Pathfinder, and any tabletop RPG. Beautifully designed, fast to use, and completely offline.
+
+🎲 ALL THE DICE YOU NEED
+Roll any combination of the standard RPG dice set:
+• D4 — the caltrop
+• D6 — the classic
+• D8 — the octahedron
+• D10 — the pentagonal trapezohedron
+• D12 — the dodecahedron
+• D20 — the legendary icosahedron
+• D100 — the percentile dice
+
+⚡ ROLL MULTIPLE DICE AT ONCE
+Add multiple dice of any type to your pool — 2d6, 3d8, 1d20+5 — and roll them all with a single tap.
+
+🎯 MODIFIER SUPPORT
+Add positive or negative modifiers to any roll. Perfect for ability checks, attack rolls, and saving throws.
+
+📜 ROLL HISTORY
+View your recent rolls so you never lose track of what just happened at the table.
+
+✨ SATISFYING ANIMATIONS
+Each roll triggers a smooth, satisfying animation. Rolling feels good.
+
+🌙☀ DARK & LIGHT MODE
+A deep dark mode for dimly lit game rooms, and a clean light mode for daytime sessions. Your preference is saved automatically.
+
+✅ 100% OFFLINE
+No internet required. Roll dice anywhere — at the table, on the go, or in a dungeon with no signal.
+
+PERFECT FOR:
+• D&D 5e, Pathfinder, Call of Cthulhu, and any other TTRPG
+• Dungeon Masters and players alike
+• Board gamers who need a quick dice replacement
+• Anyone who loves satisfying dice rolls
+
+No ads. No permissions. No internet. Just dice.
+
+
+KEYWORDS / TAGS
+---------------
+dice roller, D&D dice, DnD dice, tabletop RPG, dungeons and dragons, D20 roller, RPG dice, pathfinder dice, TTRPG, dice app, board game dice
+
+
+CATEGORY
+--------
+Entertainment
+
+
+CONTENT RATING
+--------------
+Everyone
