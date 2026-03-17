@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "DnDice",
+    "slug": "dndice",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0e0e14",
+    "splash": {
+      "backgroundColor": "#0e0e14"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0e0e14"
+      },
+      "package": "com.dndice.app"
+    },
+    "platforms": ["android", "ios"]
+  }
+}
