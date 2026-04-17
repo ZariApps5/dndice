@@ -1,9 +1,15 @@
 package com.dndice.app
 
 import android.os.Bundle
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -126,6 +132,7 @@ val LocalColors = compositionLocalOf { darkColors }
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MobileAds.initialize(this)
         enableEdgeToEdge()
         val prefs = getSharedPreferences("dndice_prefs", MODE_PRIVATE)
         setContent {
@@ -283,11 +290,14 @@ fun DiceRollerScreen(isDark: Boolean, onToggleTheme: () -> Unit) {
         containerColor = animBg,
         contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
-            RollButtonBar(
-                enabled = hasDice && !isRolling,
-                scale = rollBtnScale.value,
-                onRoll = ::roll,
-            )
+            Column {
+                BannerAd()
+                RollButtonBar(
+                    enabled = hasDice && !isRolling,
+                    scale = rollBtnScale.value,
+                    onRoll = ::roll,
+                )
+            }
         },
     ) { padding ->
         Column(
@@ -796,6 +806,26 @@ fun RollHistory(history: List<HistoryEntry>) {
             }
         }
     }
+}
+
+// ── Banner ad ────────────────────────────────────────────
+
+@Composable
+fun BannerAd() {
+    AndroidView(
+        modifier = Modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                setAdSize(AdSize.BANNER)
+                adUnitId = "ca-app-pub-3572341533498507/1079824166"
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                )
+                loadAd(AdRequest.Builder().build())
+            }
+        },
+    )
 }
 
 // ── Roll button ──────────────────────────────────────────

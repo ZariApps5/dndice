@@ -23,11 +23,14 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file(localProps.getProperty("KEYSTORE_PATH", ""))
-            storePassword = localProps.getProperty("KEYSTORE_PASSWORD", "")
-            keyAlias = localProps.getProperty("KEY_ALIAS", "")
-            keyPassword = localProps.getProperty("KEY_PASSWORD", "")
+        val keystorePath = localProps.getProperty("KEYSTORE_PATH", "")
+        if (keystorePath.isNotEmpty()) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = localProps.getProperty("KEYSTORE_PASSWORD", "")
+                keyAlias = localProps.getProperty("KEY_ALIAS", "")
+                keyPassword = localProps.getProperty("KEY_PASSWORD", "")
+            }
         }
     }
 
@@ -39,7 +42,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
@@ -63,4 +66,5 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.foundation:foundation")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("com.google.android.gms:play-services-ads:23.3.0")
 }
