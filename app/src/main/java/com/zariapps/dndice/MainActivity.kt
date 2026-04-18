@@ -290,7 +290,9 @@ fun DiceRollerScreen(isDark: Boolean, onToggleTheme: () -> Unit) {
         containerColor = animBg,
         contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
-            Column {
+            Column(
+                modifier = Modifier.navigationBarsPadding()
+            ) {
                 BannerAd()
                 RollButtonBar(
                     enabled = hasDice && !isRolling,
