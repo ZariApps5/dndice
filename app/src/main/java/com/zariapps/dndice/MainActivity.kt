@@ -1,4 +1,4 @@
-package com.dndice.app
+package com.zariapps.dndice
 
 import android.os.Bundle
 import android.widget.FrameLayout

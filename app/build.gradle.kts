@@ -11,11 +11,11 @@ val localProps = Properties().also { props ->
 }
 
 android {
-    namespace = "com.dndice.app"
+    namespace = "com.zariapps.dndice"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.dndice.app"
+        applicationId = "com.zariapps.dndice"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
